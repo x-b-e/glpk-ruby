@@ -11,6 +11,15 @@ module Glpk
   class << self
     attr_accessor :ffi_lib
   end
+
+  def self.heroku_lib_path
+    if ENV["HEROKU_APP_NAME"]
+      "/app/.apt/usr/lib/x86_64-linux-gnu/libglpk.so.40"
+    else
+      nil
+    end
+  end
+
   lib_name =
     if Gem.win_platform?
       # TODO test
@@ -18,7 +27,7 @@ module Glpk
     elsif RbConfig::CONFIG["host_os"] =~ /darwin/i
       ["libglpk.dylib"]
     else
-      ["libglpk.so", "libglpk.so.40"]
+      heroku_lib_path ? [heroku_lib_path, "libglpk.so", "libglpk.so.40"] : ["libglpk.so", "libglpk.so.40"]
     end
   self.ffi_lib = lib_name
 
