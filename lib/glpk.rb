@@ -11,13 +11,14 @@ module Glpk
   class << self
     attr_accessor :ffi_lib
   end
-
-  def self.heroku_lib_path
-    if ENV["HEROKU_APP_NAME"]
-      "/app/.apt/usr/lib/x86_64-linux-gnu/libglpk.so.40"
-    else
-      nil
-    end
+  
+  # I can't figure out how to get around this!
+  if ENV["HEROKU_APP_NAME"]
+    lib_directory = "/app/.apt/usr/lib/x86_64-linux-gnu"
+    Fiddle.dlopen("#{lib_directory}/libsuitesparseconfig.so.5")
+    Fiddle.dlopen("#{lib_directory}/libcolamd.so.2")
+    Fiddle.dlopen("#{lib_directory}/libamd.so.2")
+    Fiddle.dlopen("#{lib_directory}/libglpk.so.40")
   end
 
   lib_name =
@@ -27,10 +28,10 @@ module Glpk
     elsif RbConfig::CONFIG["host_os"] =~ /darwin/i
       ["libglpk.dylib"]
     else
-      heroku_lib_path ? [heroku_lib_path, "libglpk.so", "libglpk.so.40"] : ["libglpk.so", "libglpk.so.40"]
+      ["libglpk.so", "libglpk.so.40"]
     end
   self.ffi_lib = lib_name
-
+  
   # friendlier error message
   autoload :FFI, "glpk/ffi"
 
